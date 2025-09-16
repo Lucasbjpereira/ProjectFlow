@@ -13,6 +13,7 @@ import { Observable, Subject } from 'rxjs';
 import { map, shareReplay, takeUntil } from 'rxjs/operators';
 import { AuthService, ProjectService } from '../../../core/services';
 import { User, Client } from '../../../core/models';
+import { HeaderComponent } from '../header/header.component';
 
 interface MenuItem {
   label: string;
@@ -36,7 +37,8 @@ interface MenuItem {
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    MatBadgeModule
+    MatBadgeModule,
+    HeaderComponent
   ],
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss']
