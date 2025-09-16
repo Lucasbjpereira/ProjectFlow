@@ -1,0 +1,88 @@
+// Variáveis SCSS para o projeto
+
+// Cores principais
+$primary-color: #1976d2;
+$secondary-color: #424242;
+$accent-color: #ff4081;
+$warn-color: #f44336;
+$success-color: #4caf50;
+$info-color: #2196f3;
+
+// Cores de texto
+$text-primary: rgba(0, 0, 0, 0.87);
+$text-secondary: rgba(0, 0, 0, 0.54);
+$text-muted: rgba(0, 0, 0, 0.38);
+$text-disabled: rgba(0, 0, 0, 0.26);
+$text-hint: rgba(0, 0, 0, 0.38);
+
+// Cores de fundo
+$background-primary: #fafafa;
+$background-secondary: #ffffff;
+$background-card: #ffffff;
+$background-hover: rgba(0, 0, 0, 0.04);
+
+// Cores de borda
+$border-color: rgba(0, 0, 0, 0.12);
+$divider-color: rgba(0, 0, 0, 0.12);
+
+// Breakpoints
+$mobile-breakpoint: 768px;
+$tablet-breakpoint: 1024px;
+$desktop-breakpoint: 1200px;
+
+// Espaçamentos
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// Tamanhos de fonte
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-xxl: 24px;
+
+// Pesos de fonte
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+
+// Alturas
+$header-height: 64px;
+$sidebar-width: 256px;
+$toolbar-height: 56px;
+
+// Border radius
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+$card-radius: 8px;
+
+// Shadows
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+$shadow-md: 0 2px 6px rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.18);
+
+// Transições
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.15s ease;
+$transition-slow: all 0.5s ease;
+$transition-all: all 0.3s ease-in-out;
+$transition-colors: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+
+// Z-index
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;

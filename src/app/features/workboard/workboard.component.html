@@ -1,0 +1,484 @@
+<div class="workboard-container">
+  <!-- Header -->
+  <div class="workboard-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon>dashboard</mat-icon>
+          WorkBoard
+        </h1>
+        <p class="page-subtitle">Gerencie suas tarefas com Kanban e cronômetro integrado</p>
+      </div>
+      
+      <div class="header-actions">
+        <!-- Timer Display -->
+        <div class="timer-display" [class.active]="isTimerRunning">
+          <mat-icon>timer</mat-icon>
+          <span class="timer-text" #timerDisplay>{{ timerDisplay$ }}</span>
+          <button mat-icon-button 
+                  *ngIf="isTimerRunning" 
+                  (click)="stopTimer()"
+                  matTooltip="Parar cronômetro"
+                  class="stop-timer-btn">
+            <mat-icon>stop</mat-icon>
+          </button>
+        </div>
+        
+        <button mat-raised-button 
+                color="primary" 
+                (click)="openTaskDialog()"
+                class="add-task-btn">
+          <mat-icon>add</mat-icon>
+          Nova Tarefa
+        </button>
+        
+        <button mat-icon-button 
+                [matMenuTriggerFor]="actionsMenu"
+                matTooltip="Mais ações">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">
+          <mat-icon>assignment</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalTasks }}</span>
+          <span class="stat-label">Total de Tarefas</span>
+        </div>
+      </div>
+    </mat-card>
+    
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon progress">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.inProgressTasks }}</span>
+          <span class="stat-label">Em Progresso</span>
+        </div>
+      </div>
+    </mat-card>
+    
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon completed">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.completedTasks }}</span>
+          <span class="stat-label">Concluídas</span>
+        </div>
+      </div>
+    </mat-card>
+    
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon hours">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.todayHours | number:'1.1-1' }}h</span>
+          <span class="stat-label">Horas Hoje</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <form [formGroup]="filterForm" class="filters-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Projeto</mat-label>
+        <mat-select formControlName="project">
+          <mat-option value="">Todos os projetos</mat-option>
+          <mat-option *ngFor="let project of projects" [value]="project">
+            {{ project }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Responsável</mat-label>
+        <mat-select formControlName="assignee">
+          <mat-option value="">Todos os usuários</mat-option>
+          <mat-option *ngFor="let user of users" [value]="user">
+            {{ user }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Prioridade</mat-label>
+        <mat-select formControlName="priority">
+          <mat-option value="">Todas as prioridades</mat-option>
+          <mat-option *ngFor="let priority of priorities" [value]="priority.value">
+            {{ priority.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar tarefas</mat-label>
+        <input matInput formControlName="search" placeholder="Digite para buscar...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      
+      <button mat-stroked-button 
+              type="button" 
+              (click)="clearFilters()"
+              class="clear-filters-btn">
+        <mat-icon>clear</mat-icon>
+        Limpar
+      </button>
+    </form>
+  </mat-card>
+
+  <!-- Kanban Board -->
+  <div class="kanban-board">
+    <div class="kanban-columns" cdkDropListGroup>
+      <div *ngFor="let column of columns" 
+           class="kanban-column"
+           [style.background-color]="column.color">
+        
+        <!-- Column Header -->
+        <div class="column-header">
+          <div class="column-title">
+            <h3>{{ column.title }}</h3>
+            <mat-chip-set>
+              <mat-chip [style.background-color]="column.color">{{ column.tasks.length }}</mat-chip>
+              <mat-chip *ngIf="column.limit" 
+                       [class.limit-warning]="column.tasks.length >= column.limit * 0.8"
+                       [class.limit-exceeded]="column.tasks.length >= column.limit">
+                Limite: {{ column.limit }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+        
+        <!-- Tasks List -->
+        <div class="tasks-container"
+             cdkDropList
+             [id]="column.id"
+             [cdkDropListData]="column.tasks"
+             (cdkDropListDropped)="drop($event)"
+             [cdkDropListConnectedTo]="getColumnIds()">
+          
+          <div *ngFor="let task of column.tasks" 
+               class="task-card"
+               [class.overdue]="isOverdue(task)"
+               [class.timer-active]="currentTimer?.taskId === task.id"
+               cdkDrag>
+            
+            <!-- Task Header -->
+            <div class="task-header">
+              <div class="task-priority" 
+                   [style.background-color]="getPriorityColor(task.priority)"
+                   [matTooltip]="getPriorityLabel(task.priority)">
+              </div>
+              
+              <div class="task-actions">
+                <button mat-icon-button 
+                        [matMenuTriggerFor]="taskMenu"
+                        (click)="selectTask(task)"
+                        class="task-menu-btn">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Task Content -->
+            <div class="task-content">
+              <h4 class="task-title">{{ task.title }}</h4>
+              <p class="task-description" *ngIf="task.description">
+                {{ task.description }}
+              </p>
+              
+              <!-- Task Meta -->
+              <div class="task-meta">
+                <div class="task-project">
+                  <mat-icon>folder</mat-icon>
+                  <span>{{ task.project }}</span>
+                </div>
+                
+                <div class="task-assignee">
+                  <mat-icon>person</mat-icon>
+                  <span>{{ task.assignee }}</span>
+                </div>
+                
+                <div class="task-due-date" [class.overdue]="isOverdue(task)">
+                  <mat-icon>event</mat-icon>
+                  <span>{{ task.dueDate | date:'dd/MM' }}</span>
+                </div>
+              </div>
+              
+              <!-- Progress Bar -->
+              <div class="task-progress" *ngIf="task.estimatedHours > 0">
+                <div class="progress-info">
+                  <span class="progress-text">
+                    {{ task.loggedHours | number:'1.1-1' }}h / {{ task.estimatedHours }}h
+                  </span>
+                  <span class="progress-percentage">
+                    {{ getTaskProgress(task) | number:'1.0-0' }}%
+                  </span>
+                </div>
+                <mat-progress-bar 
+                  [value]="getTaskProgress(task)"
+                  [color]="getTaskProgress(task) > 100 ? 'warn' : 'primary'">
+                </mat-progress-bar>
+              </div>
+              
+              <!-- Tags -->
+              <div class="task-tags" *ngIf="task.tags.length > 0">
+                <mat-chip-set>
+                  <mat-chip *ngFor="let tag of task.tags" class="task-tag">
+                    {{ tag }}
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+            </div>
+            
+            <!-- Task Footer -->
+            <div class="task-footer">
+              <div class="task-timer">
+                <button mat-icon-button 
+                        *ngIf="currentTimer?.taskId !== task.id && task.status !== 'done'"
+                        (click)="startTimer(task)"
+                        matTooltip="Iniciar cronômetro"
+                        class="start-timer-btn">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+                
+                <div *ngIf="currentTimer?.taskId === task.id" class="active-timer">
+                  <mat-icon class="timer-icon">timer</mat-icon>
+                  <span class="timer-text">{{ timerDisplay$ }}</span>
+                </div>
+              </div>
+              
+              <div class="task-time-logged" *ngIf="task.loggedHours > 0">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ task.loggedHours | number:'1.1-1' }}h</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Empty State -->
+          <div *ngIf="column.tasks.length === 0" class="empty-column">
+            <mat-icon>inbox</mat-icon>
+            <p>Nenhuma tarefa</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Dialog -->
+<div class="dialog-overlay" *ngIf="showTaskDialog" (click)="closeTaskDialog()">
+  <mat-card class="task-dialog" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>
+        {{ selectedTask ? 'Editar Tarefa' : 'Nova Tarefa' }}
+      </mat-card-title>
+      <button mat-icon-button (click)="closeTaskDialog()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="taskForm" class="task-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="title" placeholder="Digite o título da tarefa">
+            <mat-error *ngIf="taskForm.get('title')?.hasError('required')">
+              Título é obrigatório
+            </mat-error>
+            <mat-error *ngIf="taskForm.get('title')?.hasError('minlength')">
+              Título deve ter pelo menos 3 caracteres
+            </mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descrição</mat-label>
+            <textarea matInput 
+                      formControlName="description" 
+                      placeholder="Descreva a tarefa"
+                      rows="3">
+            </textarea>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Projeto</mat-label>
+            <mat-select formControlName="project">
+              <mat-option *ngFor="let project of projects" [value]="project">
+                {{ project }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="taskForm.get('project')?.hasError('required')">
+              Projeto é obrigatório
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Responsável</mat-label>
+            <mat-select formControlName="assignee">
+              <mat-option *ngFor="let user of users" [value]="user">
+                {{ user }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="taskForm.get('assignee')?.hasError('required')">
+              Responsável é obrigatório
+            </mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Prioridade</mat-label>
+            <mat-select formControlName="priority">
+              <mat-option *ngFor="let priority of priorities" [value]="priority.value">
+                <span [style.color]="priority.color">{{ priority.label }}</span>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Horas Estimadas</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="estimatedHours" 
+                   min="0.5" 
+                   step="0.5">
+            <mat-error *ngIf="taskForm.get('estimatedHours')?.hasError('required')">
+              Horas estimadas é obrigatório
+            </mat-error>
+            <mat-error *ngIf="taskForm.get('estimatedHours')?.hasError('min')">
+              Mínimo de 0.5 horas
+            </mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Data de Entrega</mat-label>
+            <input matInput 
+                   [matDatepicker]="picker" 
+                   formControlName="dueDate">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="taskForm.get('dueDate')?.hasError('required')">
+              Data de entrega é obrigatória
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </form>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeTaskDialog()">Cancelar</button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="saveTask()"
+              [disabled]="taskForm.invalid">
+        {{ selectedTask ? 'Atualizar' : 'Criar' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<!-- Time Entry Dialog -->
+<div class="dialog-overlay" *ngIf="showTimeDialog" (click)="closeTimeDialog()">
+  <mat-card class="time-dialog" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>Apontamento de Horas</mat-card-title>
+      <button mat-icon-button (click)="closeTimeDialog()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="timeEntryForm" class="time-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descrição do trabalho realizado</mat-label>
+          <textarea matInput 
+                    formControlName="description" 
+                    placeholder="Descreva o que foi feito"
+                    rows="3">
+          </textarea>
+          <mat-error *ngIf="timeEntryForm.get('description')?.hasError('required')">
+            Descrição é obrigatória
+          </mat-error>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Duração (minutos)</mat-label>
+          <input matInput 
+                 type="number" 
+                 formControlName="duration" 
+                 min="1">
+          <mat-error *ngIf="timeEntryForm.get('duration')?.hasError('required')">
+            Duração é obrigatória
+          </mat-error>
+          <mat-error *ngIf="timeEntryForm.get('duration')?.hasError('min')">
+            Mínimo de 1 minuto
+          </mat-error>
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeTimeDialog()">Cancelar</button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="saveTimeEntry()"
+              [disabled]="timeEntryForm.invalid">
+        Salvar
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<!-- Task Menu -->
+<mat-menu #taskMenu="matMenu">
+  <button mat-menu-item (click)="openTaskDialog(selectedTask!)" *ngIf="selectedTask">
+    <mat-icon>edit</mat-icon>
+    <span>Editar</span>
+  </button>
+  <button mat-menu-item (click)="startTimer(selectedTask!)" *ngIf="selectedTask?.status !== 'done'">
+    <mat-icon>play_arrow</mat-icon>
+    <span>Iniciar Timer</span>
+  </button>
+  <button mat-menu-item (click)="deleteTask(selectedTask!)">
+    <mat-icon>delete</mat-icon>
+    <span>Excluir</span>
+  </button>
+</mat-menu>
+
+<!-- Actions Menu -->
+<mat-menu #actionsMenu="matMenu">
+  <button mat-menu-item (click)="exportTimesheet()">
+    <mat-icon>download</mat-icon>
+    <span>Exportar Timesheet</span>
+  </button>
+  <button mat-menu-item (click)="navigateToAnalytics()">
+    <mat-icon>analytics</mat-icon>
+    <span>Ver Analytics</span>
+  </button>
+  <mat-divider></mat-divider>
+  <button mat-menu-item (click)="clearFilters()">
+    <mat-icon>clear_all</mat-icon>
+    <span>Limpar Filtros</span>
+  </button>
+</mat-menu>

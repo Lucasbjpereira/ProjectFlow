@@ -1,0 +1,108 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1 class="page-title">Visão Geral</h1>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="main-grid">
+    <!-- Financial Overview Card (2/3 width) -->
+    <div class="financial-overview-card">
+      <h3>Visão Geral Financeira</h3>
+      <p class="subtitle">Receita mensal e lucro do projeto</p>
+      <div class="chart-container">
+        <canvas #financialChart></canvas>
+      </div>
+    </div>
+
+    <!-- Project Summary Card (1/3 width) -->
+    <div class="project-summary-card">
+      <h3>Resumo do Projeto</h3>
+      <div class="project-status">
+        <div class="status-item">
+          <span class="status-label">Em Andamento</span>
+          <div class="progress-bar">
+            <div class="progress-fill blue" style="width: 60%"></div>
+          </div>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Concluído</span>
+          <div class="progress-bar">
+            <div class="progress-fill green" style="width: 80%"></div>
+          </div>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Atrasado</span>
+          <div class="progress-bar">
+            <div class="progress-fill red" style="width: 20%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics Cards Row -->
+  <div class="metrics-row">
+    <div class="metric-card hours">
+      <div class="metric-icon">
+        <span class="material-symbols-outlined">schedule</span>
+      </div>
+      <div class="metric-content">
+        <h2 class="metric-value">1500h</h2>
+        <p class="metric-label">Total de Horas</p>
+      </div>
+    </div>
+
+    <div class="metric-card deadline">
+      <div class="metric-icon">
+        <span class="material-symbols-outlined">event</span>
+      </div>
+      <div class="metric-content">
+        <h2 class="metric-value">20 de Julho</h2>
+        <p class="metric-label">Próximo Prazo</p>
+      </div>
+    </div>
+
+    <div class="metric-card occupation">
+      <div class="metric-icon">
+        <span class="material-symbols-outlined">groups</span>
+      </div>
+      <div class="metric-content">
+        <h2 class="metric-value">80%</h2>
+        <p class="metric-label">Ocupação da Equipe</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activities -->
+  <div class="activities-section">
+    <h3>Atividades Recentes</h3>
+    <div class="activities-list">
+      <div class="activity-item">
+        <div class="activity-content">
+          <p class="activity-title">Projeto Marketing Digital foi atualizado</p>
+          <span class="activity-time">10:07 AM</span>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-content">
+          <p class="activity-title">Nova reunião adicionada à equipe de desenvolvimento</p>
+          <span class="activity-time">11:35 AM</span>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-content">
+          <p class="activity-title">Prazo do projeto 'Desenvolvimento do Produto' atualizado</p>
+          <span class="activity-time">12:45 PM</span>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-content">
+          <p class="activity-title">Reunião de planejamento do projeto 'Expansão de Mercado' agendada</p>
+          <span class="activity-time">2:30 PM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

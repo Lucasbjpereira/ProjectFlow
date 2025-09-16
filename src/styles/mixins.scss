@@ -1,0 +1,59 @@
+// Mixins para o projeto
+
+// Mixin para responsividade
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == mobile {
+    @media (max-width: 767px) {
+      @content;
+    }
+  }
+  @if $breakpoint == tablet {
+    @media (min-width: 768px) and (max-width: 1023px) {
+      @content;
+    }
+  }
+  @if $breakpoint == desktop {
+    @media (min-width: 1024px) {
+      @content;
+    }
+  }
+}
+
+// Mixin para flexbox center
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Mixin para card shadow
+@mixin card-shadow {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+// Mixin para transições
+@mixin transition($property: all, $duration: 0.3s, $timing: ease) {
+  transition: $property $duration $timing;
+}
+
+// Mixin para truncate text
+@mixin truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Mixin para button styles
+@mixin button-style($bg-color, $text-color: white) {
+  background-color: $bg-color;
+  color: $text-color;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  @include transition();
+  
+  &:hover {
+    opacity: 0.8;
+  }
+}

@@ -1,0 +1,144 @@
+<div class="p-8 bg-white rounded-lg shadow-sm">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Projetos</h1>
+    <div class="flex items-center gap-4">
+      <!-- View Mode Buttons -->
+      <div class="flex items-center border rounded-lg p-1 bg-gray-100">
+        <button (click)="setViewMode('list')"
+                [ngClass]="displayMode === 'list' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'"
+                class="flex items-center gap-2 px-3 py-1 rounded-md transition-colors">
+          <span class="material-symbols-outlined text-base">list</span>
+          Lista
+        </button>
+        <button (click)="setViewMode('grid')"
+                [ngClass]="displayMode === 'grid' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'"
+                class="flex items-center gap-2 px-3 py-1 rounded-md transition-colors">
+          <span class="material-symbols-outlined text-base">grid_view</span>
+          Grade
+        </button>
+      </div>
+
+      <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 border rounded-lg hover:bg-gray-50">
+        <span class="material-symbols-outlined text-base">filter_list</span>
+        Filtros
+      </button>
+      <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 border rounded-lg hover:bg-gray-50">
+        <span class="material-symbols-outlined text-base">swap_vert</span>
+        Ordenar
+      </button>
+      <button (click)="openModal()" class="flex items-center justify-center gap-2 h-10 px-5 bg-[var(--primary-color)] text-white rounded-lg shadow-md hover:bg-purple-700 transition-colors">
+        <span class="material-symbols-outlined">add</span>
+        <span class="font-medium">Novo Projeto</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Table View -->
+  <div *ngIf="displayMode === 'list'" class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <input type="checkbox" class="rounded border-gray-300"/>
+          </th>
+          <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Projeto</th>
+          <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+          <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código do Contrato</th>
+          <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tecnologias</th>
+          <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horas Gastas</th>
+          <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Faturamento</th>
+          <th scope="col" class="relative py-3 px-6">
+            <span class="sr-only">Ações</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let project of filteredProjects$ | async" class="hover:bg-gray-50">
+          <td class="p-4 whitespace-nowrap">
+            <input type="checkbox" class="rounded border-gray-300"/>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap">
+            <div class="text-sm font-semibold text-gray-900">{{ project.name }}</div>
+            <div class="text-sm text-gray-500 truncate max-w-xs">{{ project.description }}</div>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-600">{{ getClientName(project.clientId) }}</td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-600">{{ getContractNumber(project.contractId) }}</td>
+          <td class="py-4 px-6 whitespace-nowrap">
+            <div class="flex items-center gap-2">
+              <span *ngFor="let tech of project.technologies" class="px-2.5 py-1 text-xs font-medium text-white bg-purple-600 rounded-full">{{ tech }}</span>
+            </div>
+          </td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-600">{{ project.spentHours }}h</td>
+          <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-600">{{ project.revenue | currency:'BRL' }}</td>
+          <td class="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
+            <button (click)="openModal(project)" class="text-gray-500 hover:text-gray-700">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="displayMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div *ngFor="let project of filteredProjects$ | async" class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div class="p-5">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="text-lg font-bold text-gray-800">{{ project.name }}</h3>
+          <button (click)="openModal(project)" class="text-gray-500 hover:text-gray-700 p-1">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+        </div>
+        <p class="text-sm text-gray-600 mb-3"><span class="font-medium">Cliente:</span> {{ getClientName(project.clientId) }}</p>
+        <p class="text-sm text-gray-500 mb-4 h-10 overflow-hidden">{{ project.description }}</p>
+        
+        <div class="mb-4">
+          <p class="text-xs text-gray-500 mb-1">Código do Contrato</p>
+          <p class="text-sm font-medium text-gray-700">{{ getContractNumber(project.contractId) }}</p>
+        </div>
+
+        <div class="mb-4">
+          <p class="text-xs text-gray-500 mb-2">Tecnologias</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <span *ngFor="let tech of project.technologies" class="px-2.5 py-1 text-xs font-medium text-purple-800 bg-purple-100 rounded-full">{{ tech }}</span>
+          </div>
+        </div>
+        
+        <div class="flex justify-between items-center border-t pt-4 mt-4">
+          <div>
+            <p class="text-xs text-gray-500">Horas Gastas</p>
+            <p class="text-sm font-bold text-gray-800">{{ project.spentHours }}h</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-gray-500">Faturamento</p>
+            <p class="text-sm font-bold text-green-600">{{ project.revenue | currency:'BRL' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Footer -->
+  <div class="flex items-center justify-between pt-4">
+    <span class="text-sm text-gray-600">Mostrando 1-5 de 25 projetos</span>
+    <nav class="flex items-center gap-2">
+      <a href="#" class="px-3 py-1 text-sm font-medium text-gray-600 border rounded-lg hover:bg-gray-50">Anterior</a>
+      <a href="#" class="px-3 py-1 text-sm font-medium text-white bg-purple-600 border border-purple-600 rounded-lg">1</a>
+      <a href="#" class="px-3 py-1 text-sm font-medium text-gray-600 border rounded-lg hover:bg-gray-50">2</a>
+      <a href="#" class="px-3 py-1 text-sm font-medium text-gray-600 border rounded-lg hover:bg-gray-50">3</a>
+      <a href="#" class="px-3 py-1 text-sm font-medium text-gray-600 border rounded-lg hover:bg-gray-50">Próximo</a>
+    </nav>
+  </div>
+</div>
+
+<!-- Project Form Modal -->
+<app-project-form
+  *ngIf="isModalOpen"
+  [project]="projectToEdit"
+  [initialClientId]="clientId"
+  (close)="closeModal()"
+  (save)="handleSave($event)">
+</app-project-form>

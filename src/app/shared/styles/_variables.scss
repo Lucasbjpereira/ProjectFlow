@@ -1,0 +1,110 @@
+// Color Variables
+$primary-color: #1976d2;
+$accent-color: #ff4081;
+$warn-color: #f44336;
+$success-color: #4caf50;
+$info-color: #2196f3;
+$warning-color: #ff9800;
+
+// Background Colors
+$background-color: #fafafa;
+$surface-color: #ffffff;
+$card-background: #ffffff;
+
+// Text Colors
+$text-primary: rgba(0, 0, 0, 0.87);
+$text-secondary: rgba(0, 0, 0, 0.54);
+$text-disabled: rgba(0, 0, 0, 0.38);
+
+// Gradient Backgrounds
+$gradient-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$gradient-primary: linear-gradient(45deg, #1976d2 30%, #42a5f5 90%);
+$gradient-accent: linear-gradient(45deg, #ff4081 30%, #ff80ab 90%);
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// Border Radius
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+
+// Shadows
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+$shadow-md: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+$shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+
+// Transitions
+$transition-fast: 0.15s ease-in-out;
+$transition-normal: 0.3s ease-in-out;
+$transition-slow: 0.5s ease-in-out;
+$transition-all: all 0.3s ease-in-out;
+
+// Breakpoints
+$breakpoint-xs: 576px;
+$breakpoint-sm: 768px;
+$breakpoint-md: 992px;
+$breakpoint-lg: 1200px;
+$breakpoint-xl: 1400px;
+
+// Z-index
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// Additional spacing
+$spacing-2xl: 3rem;
+$spacing-3xl: 4rem;
+
+// Additional border radius
+$border-radius-2xl: 1.5rem;
+
+// Font sizes
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-base: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+$font-size-3xl: 1.875rem;
+$font-size-4xl: 2.25rem;
+
+// Additional shadows
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+// Secondary color
+$secondary-color: #ff4081;
+
+// Font weights
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+
+// Additional variables
+$card-radius: 8px;
+$transition-colors: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+$card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+$card-border: rgba(0, 0, 0, 0.12);
+$line-height-tight: 1.2;
+$error-color: #f44336;
+$primary-dark: #1565c0;
+$border-light: rgba(0, 0, 0, 0.08);
+$border-color: rgba(0, 0, 0, 0.12);
+$gray-50: #fafafa;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$text-tertiary: rgba(0, 0, 0, 0.38);

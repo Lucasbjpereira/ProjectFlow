@@ -1,0 +1,608 @@
+<div class="analytics-container">
+  <!-- Header -->
+  <div class="analytics-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon>analytics</mat-icon>
+          Analytics & Insights
+        </h1>
+        <p class="page-subtitle">Análise detalhada de produtividade e performance</p>
+      </div>
+      
+      <div class="header-actions">
+        <button mat-stroked-button (click)="exportReport()">
+          <mat-icon>download</mat-icon>
+          Exportar Relatório
+        </button>
+        
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu">
+          <mat-icon>more_vert</mat-icon>
+          Ações
+        </button>
+        
+        <mat-menu #actionsMenu="matMenu">
+          <button mat-menu-item (click)="navigateToProjects()">
+            <mat-icon>folder</mat-icon>
+            Ver Projetos
+          </button>
+          <button mat-menu-item (click)="navigateToWorkboard()">
+            <mat-icon>dashboard</mat-icon>
+            WorkBoard
+          </button>
+          <button mat-menu-item (click)="navigateToTalentPool()">
+            <mat-icon>people</mat-icon>
+            Talent Pool
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <form [formGroup]="filterForm" class="filters-form">
+      <div class="filters-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Período</mat-label>
+          <mat-select formControlName="dateRange">
+            <mat-option *ngFor="let range of dateRanges" [value]="range.value">
+              {{ range.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="filterForm.get('dateRange')?.value === 'custom'">
+          <mat-label>Data Inicial</mat-label>
+          <input matInput [matDatepicker]="startPicker" formControlName="startDate">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="filterForm.get('dateRange')?.value === 'custom'">
+          <mat-label>Data Final</mat-label>
+          <input matInput [matDatepicker]="endPicker" formControlName="endDate">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Projetos</mat-label>
+          <mat-select formControlName="projects" multiple>
+            <mat-option *ngFor="let project of projects" [value]="project">
+              {{ project }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Equipes</mat-label>
+          <mat-select formControlName="teams" multiple>
+            <mat-option *ngFor="let team of teams" [value]="team">
+              {{ team }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-card>
+
+  <!-- Summary Metrics -->
+  <div class="summary-grid">
+    <mat-card class="summary-card">
+      <div class="metric-content">
+        <div class="metric-icon projects">
+          <mat-icon>folder</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ summaryMetrics.totalProjects }}</span>
+          <span class="metric-label">Total de Projetos</span>
+          <span class="metric-sublabel">{{ summaryMetrics.activeProjects }} ativos</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <div class="metric-content">
+        <div class="metric-icon team">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ summaryMetrics.teamMembers }}</span>
+          <span class="metric-label">Membros da Equipe</span>
+          <span class="metric-sublabel">{{ formatPercentage(summaryMetrics.avgEfficiency) }} eficiência média</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <div class="metric-content">
+        <div class="metric-icon revenue">
+          <mat-icon>attach_money</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ formatCurrency(summaryMetrics.totalRevenue) }}</span>
+          <span class="metric-label">Receita Total</span>
+          <span class="metric-sublabel">{{ formatPercentage(analyticsData.financialMetrics.profitMargin) }} margem</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <div class="metric-content">
+        <div class="metric-icon completion">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ formatPercentage(summaryMetrics.completionRate) }}</span>
+          <span class="metric-label">Taxa de Conclusão</span>
+          <span class="metric-sublabel">{{ analyticsData.productivity.tasksCompleted }} tarefas</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Analytics Tabs -->
+  <mat-tab-group class="analytics-tabs" animationDuration="300ms">
+    <!-- Productivity Tab -->
+    <mat-tab label="Produtividade">
+      <div class="tab-content">
+        <div class="charts-grid">
+          <!-- Velocity Chart -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Velocidade da Equipe</mat-card-title>
+              <mat-card-subtitle>Story points por sprint</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-container">
+                <canvas #productivityChart></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Burndown Chart -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Burndown Chart</mat-card-title>
+              <mat-card-subtitle>Progresso do sprint atual</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-container">
+                <canvas #burndownChart></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Productivity Metrics -->
+        <div class="metrics-grid">
+          <mat-card class="metric-card">
+            <div class="metric-header">
+              <mat-icon>assignment_turned_in</mat-icon>
+              <span>Tarefas Concluídas</span>
+            </div>
+            <div class="metric-value large">{{ analyticsData.productivity.tasksCompleted }}</div>
+            <div class="metric-trend positive">+12% vs mês anterior</div>
+          </mat-card>
+
+          <mat-card class="metric-card">
+            <div class="metric-header">
+              <mat-icon>schedule</mat-icon>
+              <span>Tempo Médio</span>
+            </div>
+            <div class="metric-value large">{{ analyticsData.productivity.averageCompletionTime }}h</div>
+            <div class="metric-trend negative">-8% vs mês anterior</div>
+          </mat-card>
+
+          <mat-card class="metric-card">
+            <div class="metric-header">
+              <mat-icon>trending_up</mat-icon>
+              <span>Score de Eficiência</span>
+            </div>
+            <div class="metric-value large">{{ formatPercentage(analyticsData.productivity.efficiencyScore) }}</div>
+            <div class="metric-trend positive">+5% vs mês anterior</div>
+          </mat-card>
+
+          <mat-card class="metric-card">
+            <div class="metric-header">
+              <mat-icon>speed</mat-icon>
+              <span>Taxa de Burndown</span>
+            </div>
+            <div class="metric-value large">{{ analyticsData.productivity.burndownRate }}%</div>
+            <div class="metric-trend neutral">Estável</div>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Time Tracking Tab -->
+    <mat-tab label="Controle de Tempo">
+      <div class="tab-content">
+        <div class="charts-grid">
+          <!-- Daily Hours Chart -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Horas Diárias</mat-card-title>
+              <mat-card-subtitle>Últimos 7 dias</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-container">
+                <canvas #timeChart></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Project Hours Distribution -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Distribuição por Projeto</mat-card-title>
+              <mat-card-subtitle>Horas alocadas</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="project-hours-list">
+                <div *ngFor="let project of analyticsData.timeTracking.projectHours" class="project-hour-item">
+                  <div class="project-info">
+                    <span class="project-name">{{ project.project }}</span>
+                    <span class="project-hours">{{ project.hours }}h</span>
+                  </div>
+                  <mat-progress-bar 
+                    mode="determinate" 
+                    [value]="(project.hours / analyticsData.timeTracking.totalHours) * 100">
+                  </mat-progress-bar>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Time Metrics -->
+        <div class="metrics-grid">
+          <mat-card class="metric-card">
+            <div class="metric-header">
+              <mat-icon>access_time</mat-icon>
+              <span>Total de Horas</span>
+            </div>
+            <div class="metric-value large">{{ analyticsData.timeTracking.totalHours }}h</div>
+            <div class="metric-sublabel">Este mês</div>
+          </mat-card>
+
+          <mat-card class="metric-card">
+            <div class="metric-header">
+              <mat-icon>monetization_on</mat-icon>
+              <span>Horas Faturáveis</span>
+            </div>
+            <div class="metric-value large">{{ analyticsData.timeTracking.billableHours }}h</div>
+            <div class="metric-sublabel">{{ formatPercentage((analyticsData.timeTracking.billableHours / analyticsData.timeTracking.totalHours) * 100) }} do total</div>
+          </mat-card>
+
+          <mat-card class="metric-card">
+            <div class="metric-header">
+              <mat-icon>warning</mat-icon>
+              <span>Horas Extras</span>
+            </div>
+            <div class="metric-value large">{{ analyticsData.timeTracking.overtimeHours }}h</div>
+            <div class="metric-sublabel">{{ formatPercentage((analyticsData.timeTracking.overtimeHours / analyticsData.timeTracking.totalHours) * 100) }} do total</div>
+          </mat-card>
+
+          <mat-card class="metric-card">
+            <div class="metric-header">
+              <mat-icon>today</mat-icon>
+              <span>Média Diária</span>
+            </div>
+            <div class="metric-value large">{{ (analyticsData.timeTracking.totalHours / 30).toFixed(1) }}h</div>
+            <div class="metric-sublabel">Últimos 30 dias</div>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Projects Tab -->
+    <mat-tab label="Projetos">
+      <div class="tab-content">
+        <div class="charts-grid">
+          <!-- Project Status Chart -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Status dos Projetos</mat-card-title>
+              <mat-card-subtitle>Distribuição atual</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-container">
+                <canvas #projectChart></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Milestone Progress -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Progresso dos Marcos</mat-card-title>
+              <mat-card-subtitle>Conclusão por fase</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="milestone-list">
+                <div *ngFor="let milestone of analyticsData.projectProgress.milestoneCompletion" class="milestone-item">
+                  <div class="milestone-info">
+                    <span class="milestone-name">{{ milestone.milestone }}</span>
+                    <span class="milestone-percentage">{{ formatPercentage(milestone.completion) }}</span>
+                  </div>
+                  <mat-progress-bar 
+                    mode="determinate" 
+                    [value]="milestone.completion"
+                    [color]="milestone.completion === 100 ? 'primary' : 'accent'">
+                  </mat-progress-bar>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Project Status Cards -->
+        <div class="status-grid">
+          <mat-card class="status-card on-track">
+            <div class="status-content">
+              <mat-icon>check_circle</mat-icon>
+              <div class="status-info">
+                <span class="status-value">{{ analyticsData.projectProgress.onTrack }}</span>
+                <span class="status-label">No Prazo</span>
+              </div>
+            </div>
+          </mat-card>
+
+          <mat-card class="status-card delayed">
+            <div class="status-content">
+              <mat-icon>schedule</mat-icon>
+              <div class="status-info">
+                <span class="status-value">{{ analyticsData.projectProgress.delayed }}</span>
+                <span class="status-label">Atrasados</span>
+              </div>
+            </div>
+          </mat-card>
+
+          <mat-card class="status-card completed">
+            <div class="status-content">
+              <mat-icon>done_all</mat-icon>
+              <div class="status-info">
+                <span class="status-value">{{ analyticsData.projectProgress.completed }}</span>
+                <span class="status-label">Concluídos</span>
+              </div>
+            </div>
+          </mat-card>
+
+          <mat-card class="status-card cancelled">
+            <div class="status-content">
+              <mat-icon>cancel</mat-icon>
+              <div class="status-info">
+                <span class="status-value">{{ analyticsData.projectProgress.cancelled }}</span>
+                <span class="status-label">Cancelados</span>
+              </div>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Team Performance Tab -->
+    <mat-tab label="Performance da Equipe">
+      <div class="tab-content">
+        <div class="charts-grid">
+          <!-- Team Efficiency Radar -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Eficiência da Equipe</mat-card-title>
+              <mat-card-subtitle>Comparativo por membro</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-container">
+                <canvas #teamChart></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Team Stats -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Estatísticas da Equipe</mat-card-title>
+              <mat-card-subtitle>Métricas gerais</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="team-stats">
+                <div class="stat-item">
+                  <div class="stat-icon">
+                    <mat-icon>group_work</mat-icon>
+                  </div>
+                  <div class="stat-info">
+                    <span class="stat-value">{{ formatPercentage(analyticsData.teamPerformance.collaborationScore) }}</span>
+                    <span class="stat-label">Score de Colaboração</span>
+                  </div>
+                </div>
+
+                <div class="stat-item">
+                  <div class="stat-icon">
+                    <mat-icon>school</mat-icon>
+                  </div>
+                  <div class="stat-info">
+                    <span class="stat-value">{{ formatPercentage(analyticsData.teamPerformance.knowledgeSharing) }}</span>
+                    <span class="stat-label">Compartilhamento de Conhecimento</span>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Team Members Table -->
+        <mat-card class="table-card">
+          <mat-card-header>
+            <mat-card-title>Performance Individual</mat-card-title>
+            <mat-card-subtitle>Detalhes por membro da equipe</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <table mat-table [dataSource]="analyticsData.teamPerformance.memberStats" class="team-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Nome</th>
+                <td mat-cell *matCellDef="let member">{{ member.name }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="tasksCompleted">
+                <th mat-header-cell *matHeaderCellDef>Tarefas</th>
+                <td mat-cell *matCellDef="let member">{{ member.tasksCompleted }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="hoursLogged">
+                <th mat-header-cell *matHeaderCellDef>Horas</th>
+                <td mat-cell *matCellDef="let member">{{ member.hoursLogged }}h</td>
+              </ng-container>
+
+              <ng-container matColumnDef="efficiency">
+                <th mat-header-cell *matHeaderCellDef>Eficiência</th>
+                <td mat-cell *matCellDef="let member">
+                  <mat-chip 
+                    [style.background-color]="getEfficiencyColor(member.efficiency)"
+                    [style.color]="'white'">
+                    {{ formatPercentage(member.efficiency) }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Ações</th>
+                <td mat-cell *matCellDef="let member">
+                  <button mat-icon-button [matMenuTriggerFor]="memberMenu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #memberMenu="matMenu">
+                    <button mat-menu-item>
+                      <mat-icon>visibility</mat-icon>
+                      Ver Detalhes
+                    </button>
+                    <button mat-menu-item>
+                      <mat-icon>message</mat-icon>
+                      Enviar Feedback
+                    </button>
+                  </mat-menu>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="teamColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: teamColumns;"></tr>
+            </table>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Financial Tab -->
+    <mat-tab label="Financeiro">
+      <div class="tab-content">
+        <div class="charts-grid">
+          <!-- Revenue by Project -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Receita por Projeto</mat-card-title>
+              <mat-card-subtitle>Distribuição de receita</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-container">
+                <canvas #financialChart></canvas>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Financial Summary -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Resumo Financeiro</mat-card-title>
+              <mat-card-subtitle>Visão geral do período</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="financial-summary">
+                <div class="summary-item revenue">
+                  <div class="summary-icon">
+                    <mat-icon>trending_up</mat-icon>
+                  </div>
+                  <div class="summary-info">
+                    <span class="summary-label">Receita Total</span>
+                    <span class="summary-value">{{ formatCurrency(analyticsData.financialMetrics.revenue) }}</span>
+                  </div>
+                </div>
+
+                <div class="summary-item costs">
+                  <div class="summary-icon">
+                    <mat-icon>trending_down</mat-icon>
+                  </div>
+                  <div class="summary-info">
+                    <span class="summary-label">Custos Totais</span>
+                    <span class="summary-value">{{ formatCurrency(analyticsData.financialMetrics.costs) }}</span>
+                  </div>
+                </div>
+
+                <div class="summary-item profit">
+                  <div class="summary-icon">
+                    <mat-icon>account_balance</mat-icon>
+                  </div>
+                  <div class="summary-info">
+                    <span class="summary-label">Lucro Líquido</span>
+                    <span class="summary-value">{{ formatCurrency(analyticsData.financialMetrics.profit) }}</span>
+                  </div>
+                </div>
+
+                <div class="summary-item margin">
+                  <div class="summary-icon">
+                    <mat-icon>percent</mat-icon>
+                  </div>
+                  <div class="summary-info">
+                    <span class="summary-label">Margem de Lucro</span>
+                    <span class="summary-value">{{ formatPercentage(analyticsData.financialMetrics.profitMargin) }}</span>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Project Revenue Table -->
+        <mat-card class="table-card">
+          <mat-card-header>
+            <mat-card-title>Receita por Projeto</mat-card-title>
+            <mat-card-subtitle>Detalhamento financeiro</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <table mat-table [dataSource]="analyticsData.financialMetrics.revenueByProject" class="financial-table">
+              <ng-container matColumnDef="project">
+                <th mat-header-cell *matHeaderCellDef>Projeto</th>
+                <td mat-cell *matCellDef="let project">{{ project.project }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="revenue">
+                <th mat-header-cell *matHeaderCellDef>Receita</th>
+                <td mat-cell *matCellDef="let project">{{ formatCurrency(project.revenue) }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="costs">
+                <th mat-header-cell *matHeaderCellDef>Custos</th>
+                <td mat-cell *matCellDef="let project">{{ formatCurrency(project.revenue * 0.7) }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="profit">
+                <th mat-header-cell *matHeaderCellDef>Lucro</th>
+                <td mat-cell *matCellDef="let project">{{ formatCurrency(project.revenue * 0.3) }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="margin">
+                <th mat-header-cell *matHeaderCellDef>Margem</th>
+                <td mat-cell *matCellDef="let project">
+                  <mat-chip color="primary">30%</mat-chip>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="projectColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: projectColumns;"></tr>
+            </table>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

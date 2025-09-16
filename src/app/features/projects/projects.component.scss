@@ -1,0 +1,25 @@
+/* Add any component-specific styles here */
+:host {
+  display: block;
+  background-color: #f9fafb; /* Light gray background for the whole page */
+  padding: 2rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: #10b981; /* green-500 */
+}
+
+.status-suspended {
+  background-color: #d1d5db; /* gray-300 */
+}
+
+.status-prospect {
+  background-color: #3b82f6; /* blue-500 */
+}

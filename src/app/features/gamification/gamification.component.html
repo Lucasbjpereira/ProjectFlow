@@ -1,0 +1,418 @@
+<div class="gamification-container">
+  <!-- Header -->
+  <div class="gamification-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="header-title">
+          <mat-icon>emoji_events</mat-icon>
+          Gamificação
+        </h1>
+        <p class="header-subtitle">Sistema de pontuação, conquistas e desafios</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="exportProgress()">
+          <mat-icon>download</mat-icon>
+          Exportar Progresso
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="stats-grid">
+    <!-- Level Card -->
+    <mat-card class="stat-card level-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="level-info">
+            <div class="level-badge">
+              <span class="level-number">{{ stats.currentLevel.level }}</span>
+            </div>
+            <div class="level-details">
+              <h3 class="level-title">{{ stats.currentLevel.title }}</h3>
+              <p class="level-progress">{{ stats.currentLevel.currentXP }} / {{ stats.nextLevel.requiredXP }} XP</p>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="getProgressPercentage()"
+                class="level-progress-bar">
+              </mat-progress-bar>
+            </div>
+          </div>
+          <div class="next-level">
+            <span class="next-level-text">Próximo: {{ stats.nextLevel.title }}</span>
+            <span class="xp-needed">{{ stats.nextLevel.requiredXP - stats.currentLevel.currentXP }} XP restantes</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Points Card -->
+    <mat-card class="stat-card points-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>stars</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.totalPoints | number }}</div>
+            <div class="stat-label">Pontos Totais</div>
+            <div class="stat-trend positive">
+              <mat-icon>trending_up</mat-icon>
+              +280 esta semana
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Achievements Card -->
+    <mat-card class="stat-card achievements-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>military_tech</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.achievementsUnlocked }}/{{ stats.totalAchievements }}</div>
+            <div class="stat-label">Conquistas</div>
+            <div class="stat-trend neutral">
+              <mat-icon>emoji_events</mat-icon>
+              {{ ((stats.achievementsUnlocked / stats.totalAchievements) * 100) | number:'1.0-0' }}% completo
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Streak Card -->
+    <mat-card class="stat-card streak-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>local_fire_department</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.currentStreak }}</div>
+            <div class="stat-label">Sequência Atual</div>
+            <div class="stat-trend positive">
+              <mat-icon>whatshot</mat-icon>
+              Recorde: {{ stats.longestStreak }} dias
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Main Content Tabs -->
+  <mat-card class="content-card">
+    <mat-tab-group [(selectedIndex)]="selectedTab" (selectedTabChange)="onTabChange($event)">
+      <!-- Overview Tab -->
+      <mat-tab label="Visão Geral">
+        <div class="tab-content">
+          <div class="overview-grid">
+            <!-- Progress Chart -->
+            <mat-card class="chart-card">
+              <mat-card-header>
+                <mat-card-title>Progresso do Nível</mat-card-title>
+                <mat-card-subtitle>{{ stats.currentLevel.title }} → {{ stats.nextLevel.title }}</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas id="progressChart"></canvas>
+                  <div class="chart-center">
+                    <div class="center-value">{{ getProgressPercentage() | number:'1.0-0' }}%</div>
+                    <div class="center-label">Completo</div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Points History -->
+            <mat-card class="chart-card">
+              <mat-card-header>
+                <mat-card-title>Histórico de Pontos</mat-card-title>
+                <mat-card-subtitle>Últimos 6 meses</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas id="pointsChart"></canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Level Benefits -->
+            <mat-card class="benefits-card">
+              <mat-card-header>
+                <mat-card-title>Benefícios do Nível</mat-card-title>
+                <mat-card-subtitle>{{ stats.currentLevel.title }}</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="benefits-list">
+                  <div class="benefit-item" *ngFor="let benefit of stats.currentLevel.benefits">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>{{ benefit }}</span>
+                  </div>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="next-benefits">
+                  <h4>Próximos Benefícios ({{ stats.nextLevel.title }}):</h4>
+                  <div class="benefit-item preview" *ngFor="let benefit of stats.nextLevel.benefits">
+                    <mat-icon>radio_button_unchecked</mat-icon>
+                    <span>{{ benefit }}</span>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Quick Stats -->
+            <mat-card class="quick-stats-card">
+              <mat-card-header>
+                <mat-card-title>Estatísticas Rápidas</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="quick-stats-grid">
+                  <div class="quick-stat">
+                    <div class="quick-stat-value">{{ stats.weeklyRank }}º</div>
+                    <div class="quick-stat-label">Ranking Semanal</div>
+                  </div>
+                  <div class="quick-stat">
+                    <div class="quick-stat-value">{{ stats.monthlyRank }}º</div>
+                    <div class="quick-stat-label">Ranking Mensal</div>
+                  </div>
+                  <div class="quick-stat">
+                    <div class="quick-stat-value">{{ stats.completedChallenges }}</div>
+                    <div class="quick-stat-label">Desafios Completos</div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Achievements Tab -->
+      <mat-tab label="Conquistas">
+        <div class="tab-content">
+          <!-- Filters -->
+          <div class="filters-section">
+            <mat-chip-listbox [(ngModel)]="achievementFilter" (ngModelChange)="onAchievementFilterChange($event)">
+              <mat-chip-option value="all">Todas</mat-chip-option>
+              <mat-chip-option value="unlocked">Desbloqueadas</mat-chip-option>
+              <mat-chip-option value="locked">Bloqueadas</mat-chip-option>
+              <mat-chip-option value="productivity">Produtividade</mat-chip-option>
+              <mat-chip-option value="collaboration">Colaboração</mat-chip-option>
+              <mat-chip-option value="quality">Qualidade</mat-chip-option>
+              <mat-chip-option value="milestone">Marcos</mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+
+          <!-- Achievements Grid -->
+          <div class="achievements-grid">
+            <mat-card 
+              class="achievement-card" 
+              [class.unlocked]="achievement.isUnlocked"
+              [class.locked]="!achievement.isUnlocked"
+              [class]="achievement.rarity"
+              *ngFor="let achievement of getFilteredAchievements()">
+              
+              <mat-card-content>
+                <div class="achievement-content">
+                  <div class="achievement-icon" [style.color]="getRarityColor(achievement.rarity)">
+                    <mat-icon>{{ achievement.icon }}</mat-icon>
+                    <div class="rarity-indicator" [style.background]="getRarityColor(achievement.rarity)"></div>
+                  </div>
+                  
+                  <div class="achievement-info">
+                    <h3 class="achievement-title">{{ achievement.title }}</h3>
+                    <p class="achievement-description">{{ achievement.description }}</p>
+                    
+                    <div class="achievement-meta">
+                      <mat-chip class="category-chip">
+                        <mat-icon>{{ getCategoryIcon(achievement.category) }}</mat-icon>
+                        {{ achievement.category | titlecase }}
+                      </mat-chip>
+                      <mat-chip class="points-chip">
+                        <mat-icon>stars</mat-icon>
+                        {{ achievement.points }} pts
+                      </mat-chip>
+                    </div>
+                    
+                    <div class="achievement-status" *ngIf="achievement.isUnlocked">
+                      <mat-icon class="unlock-icon">lock_open</mat-icon>
+                      <span class="unlock-date">Desbloqueado em {{ formatDate(achievement.unlockedAt!) }}</span>
+                    </div>
+                    
+                    <div class="achievement-progress" *ngIf="!achievement.isUnlocked && achievement.progress !== undefined">
+                      <div class="progress-info">
+                        <span>{{ achievement.progress }}/{{ achievement.maxProgress }}</span>
+                        <span>{{ (achievement.progress! / achievement.maxProgress!) * 100 | number:'1.0-0' }}%</span>
+                      </div>
+                      <mat-progress-bar 
+                        mode="determinate" 
+                        [value]="(achievement.progress! / achievement.maxProgress!) * 100">
+                      </mat-progress-bar>
+                    </div>
+                  </div>
+                  
+                  <div class="achievement-actions" *ngIf="achievement.isUnlocked">
+                    <button mat-icon-button (click)="shareAchievement(achievement)" matTooltip="Compartilhar">
+                      <mat-icon>share</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Leaderboard Tab -->
+      <mat-tab label="Ranking">
+        <div class="tab-content">
+          <!-- Period Selector -->
+          <div class="period-selector">
+            <mat-button-toggle-group [(ngModel)]="leaderboardPeriod" (ngModelChange)="onLeaderboardPeriodChange($event)">
+              <mat-button-toggle value="weekly">Semanal</mat-button-toggle>
+              <mat-button-toggle value="monthly">Mensal</mat-button-toggle>
+              <mat-button-toggle value="all-time">Geral</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <!-- Leaderboard -->
+          <div class="leaderboard-container">
+            <mat-card class="leaderboard-card" *ngFor="let user of leaderboard; let i = index">
+              <mat-card-content>
+                <div class="leaderboard-item" [class.current-user]="user.userName === 'Você'">
+                  <div class="rank-section">
+                    <div class="rank-badge" [class]="'rank-' + user.rank">
+                      <mat-icon *ngIf="user.rank <= 3">{{ user.rank === 1 ? 'emoji_events' : user.rank === 2 ? 'military_tech' : 'workspace_premium' }}</mat-icon>
+                      <span *ngIf="user.rank > 3">{{ user.rank }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="user-section">
+                    <div class="user-avatar">{{ user.avatar }}</div>
+                    <div class="user-info">
+                      <h3 class="user-name">{{ user.userName }}</h3>
+                      <p class="user-level">Nível {{ user.level }}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="stats-section">
+                    <div class="stat-item">
+                      <div class="stat-value">{{ user.totalPoints | number }}</div>
+                      <div class="stat-label">Pontos Totais</div>
+                    </div>
+                    <div class="stat-item">
+                      <div class="stat-value">{{ leaderboardPeriod === 'weekly' ? user.weeklyPoints : user.monthlyPoints | number }}</div>
+                      <div class="stat-label">{{ leaderboardPeriod === 'weekly' ? 'Semanal' : 'Mensal' }}</div>
+                    </div>
+                    <div class="stat-item">
+                      <div class="stat-value">{{ user.achievements }}</div>
+                      <div class="stat-label">Conquistas</div>
+                    </div>
+                    <div class="stat-item">
+                      <div class="stat-value">{{ user.streak }}</div>
+                      <div class="stat-label">Sequência</div>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Challenges Tab -->
+      <mat-tab label="Desafios">
+        <div class="tab-content">
+          <!-- Challenge Filters -->
+          <div class="challenge-filters">
+            <mat-chip-listbox [(ngModel)]="challengeFilter" (ngModelChange)="onChallengeFilterChange($event)">
+              <mat-chip-option value="all">Todos</mat-chip-option>
+              <mat-chip-option value="active">Ativos</mat-chip-option>
+              <mat-chip-option value="completed">Completos</mat-chip-option>
+              <mat-chip-option value="daily">Diários</mat-chip-option>
+              <mat-chip-option value="weekly">Semanais</mat-chip-option>
+              <mat-chip-option value="monthly">Mensais</mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+
+          <!-- Challenges Grid -->
+          <div class="challenges-grid">
+            <mat-card 
+              class="challenge-card" 
+              [class.completed]="challenge.isCompleted"
+              [class]="challenge.type"
+              *ngFor="let challenge of getFilteredChallenges()">
+              
+              <mat-card-header>
+                <div class="challenge-header">
+                  <div class="challenge-type">
+                    <mat-chip [class]="challenge.type">{{ challenge.type | titlecase }}</mat-chip>
+                  </div>
+                  <div class="challenge-points">
+                    <mat-icon>stars</mat-icon>
+                    {{ challenge.points }} pts
+                  </div>
+                </div>
+              </mat-card-header>
+              
+              <mat-card-content>
+                <div class="challenge-content">
+                  <h3 class="challenge-title">{{ challenge.title }}</h3>
+                  <p class="challenge-description">{{ challenge.description }}</p>
+                  
+                  <div class="challenge-meta">
+                    <div class="meta-item">
+                      <mat-icon>category</mat-icon>
+                      <span>{{ challenge.category }}</span>
+                    </div>
+                    <div class="meta-item">
+                      <mat-icon>group</mat-icon>
+                      <span>{{ challenge.participants }} participantes</span>
+                    </div>
+                    <div class="meta-item">
+                      <mat-icon>schedule</mat-icon>
+                      <span>{{ getDaysUntilDeadline(challenge.deadline) }} dias restantes</span>
+                    </div>
+                  </div>
+                  
+                  <div class="challenge-progress">
+                    <div class="progress-header">
+                      <span class="progress-text">{{ challenge.progress }}/{{ challenge.maxProgress }}</span>
+                      <span class="progress-percentage">{{ (challenge.progress / challenge.maxProgress) * 100 | number:'1.0-0' }}%</span>
+                    </div>
+                    <mat-progress-bar 
+                      mode="determinate" 
+                      [value]="(challenge.progress / challenge.maxProgress) * 100"
+                      [class]="challenge.type">
+                    </mat-progress-bar>
+                  </div>
+                </div>
+              </mat-card-content>
+              
+              <mat-card-actions>
+                <button 
+                  mat-raised-button 
+                  [color]="challenge.isCompleted ? 'accent' : 'primary'"
+                  [disabled]="challenge.isCompleted"
+                  (click)="joinChallenge(challenge)">
+                  <mat-icon>{{ challenge.isCompleted ? 'check_circle' : 'play_arrow' }}</mat-icon>
+                  {{ challenge.isCompleted ? 'Completo' : 'Participar' }}
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <mat-spinner diameter="60"></mat-spinner>
+    <p>Carregando dados de gamificação...</p>
+  </div>
+</div>

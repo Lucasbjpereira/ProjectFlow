@@ -1,0 +1,589 @@
+<div class="knowledge-base-container">
+  <!-- Header -->
+  <div class="knowledge-base-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="header-title">
+          <mat-icon>library_books</mat-icon>
+          Base de Conhecimento
+        </h1>
+        <p class="header-subtitle">Centralize e compartilhe conhecimento da equipe</p>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button (click)="exportData()">
+          <mat-icon>download</mat-icon>
+          Exportar
+        </button>
+        <button mat-stroked-button (click)="openCategoryDialog()">
+          <mat-icon>category</mat-icon>
+          Nova Categoria
+        </button>
+        <button mat-raised-button color="primary" (click)="openArticleDialog()">
+          <mat-icon>add</mat-icon>
+          Novo Artigo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <mat-card class="stat-card articles-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>article</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.totalArticles }}</div>
+            <div class="stat-label">Total de Artigos</div>
+            <div class="stat-trend positive">
+              <mat-icon>trending_up</mat-icon>
+              +12% este mês
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card views-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>visibility</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.totalViews | number }}</div>
+            <div class="stat-label">Total de Visualizações</div>
+            <div class="stat-trend positive">
+              <mat-icon>trending_up</mat-icon>
+              +8% esta semana
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card authors-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.totalAuthors }}</div>
+            <div class="stat-label">Autores Ativos</div>
+            <div class="stat-trend neutral">
+              <mat-icon>trending_flat</mat-icon>
+              Sem alteração
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card readtime-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.avgReadTime }}min</div>
+            <div class="stat-label">Tempo Médio de Leitura</div>
+            <div class="stat-trend negative">
+              <mat-icon>trending_down</mat-icon>
+              -2min este mês
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Content Card -->
+  <mat-card class="content-card">
+    <mat-tab-group [(selectedIndex)]="activeTab" animationDuration="300ms">
+      <!-- Articles Tab -->
+      <mat-tab label="Artigos">
+        <div class="tab-content">
+          <!-- Search and Filters -->
+          <div class="search-filters">
+            <div class="search-section">
+              <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Buscar artigos...</mat-label>
+                <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()" placeholder="Digite para buscar">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <div class="filters-section">
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Categoria</mat-label>
+                <mat-select [(value)]="selectedCategory" (selectionChange)="onCategoryChange($event.value)">
+                  <mat-option value="all">Todas as categorias</mat-option>
+                  <mat-option *ngFor="let category of categories" [value]="category.name">
+                    {{ category.name }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Dificuldade</mat-label>
+                <mat-select [(value)]="selectedDifficulty" (selectionChange)="onDifficultyChange($event.value)">
+                  <mat-option value="all">Todas as dificuldades</mat-option>
+                  <mat-option value="beginner">Iniciante</mat-option>
+                  <mat-option value="intermediate">Intermediário</mat-option>
+                  <mat-option value="advanced">Avançado</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Ordenar por</mat-label>
+                <mat-select [(value)]="sortBy" (selectionChange)="onSortChange($event.value)">
+                  <mat-option value="recent">Mais recentes</mat-option>
+                  <mat-option value="popular">Mais populares</mat-option>
+                  <mat-option value="title">Título A-Z</mat-option>
+                  <mat-option value="author">Autor A-Z</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="view-controls">
+              <mat-button-toggle-group [(value)]="viewMode">
+                <mat-button-toggle value="grid">
+                  <mat-icon>grid_view</mat-icon>
+                </mat-button-toggle>
+                <mat-button-toggle value="list">
+                  <mat-icon>view_list</mat-icon>
+                </mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+          </div>
+
+          <!-- Articles Grid/List -->
+          <div class="articles-container" [class.grid-view]="viewMode === 'grid'" [class.list-view]="viewMode === 'list'">
+            <div *ngIf="filteredArticles.length === 0" class="empty-state">
+              <mat-icon>search_off</mat-icon>
+              <h3>Nenhum artigo encontrado</h3>
+              <p>Tente ajustar os filtros ou criar um novo artigo</p>
+              <button mat-raised-button color="primary" (click)="openArticleDialog()">
+                <mat-icon>add</mat-icon>
+                Criar Primeiro Artigo
+              </button>
+            </div>
+
+            <mat-card *ngFor="let article of filteredArticles" class="article-card" [class.grid-card]="viewMode === 'grid'" [class.list-card]="viewMode === 'list'">
+              <mat-card-header *ngIf="viewMode === 'grid'">
+                <div class="article-meta">
+                  <mat-chip class="category-chip" [style.background-color]="getCategoryColor(article.category) + '20'" [style.color]="getCategoryColor(article.category)">
+                    <mat-icon>{{ getCategoryIcon(article.category) }}</mat-icon>
+                    {{ article.category }}
+                  </mat-chip>
+                  <mat-chip class="difficulty-chip" [style.background-color]="getDifficultyColor(article.difficulty) + '20'" [style.color]="getDifficultyColor(article.difficulty)">
+                    <mat-icon>{{ getDifficultyIcon(article.difficulty) }}</mat-icon>
+                    {{ article.difficulty === 'beginner' ? 'Iniciante' : article.difficulty === 'intermediate' ? 'Intermediário' : 'Avançado' }}
+                  </mat-chip>
+                </div>
+                <div class="article-actions">
+                  <button mat-icon-button [matMenuTriggerFor]="articleMenu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #articleMenu="matMenu">
+                    <button mat-menu-item (click)="openArticleDialog(article)">
+                      <mat-icon>edit</mat-icon>
+                      Editar
+                    </button>
+                    <button mat-menu-item (click)="shareArticle(article)">
+                      <mat-icon>share</mat-icon>
+                      Compartilhar
+                    </button>
+                    <button mat-menu-item (click)="deleteArticle(article)" class="delete-action">
+                      <mat-icon>delete</mat-icon>
+                      Excluir
+                    </button>
+                  </mat-menu>
+                </div>
+              </mat-card-header>
+
+              <mat-card-content>
+                <div class="article-content" [class.list-content]="viewMode === 'list'">
+                  <div class="article-info">
+                    <h3 class="article-title" (click)="openArticle(article)">{{ article.title }}</h3>
+                    <p class="article-summary">{{ article.summary }}</p>
+                    
+                    <div class="article-tags" *ngIf="article.tags.length > 0">
+                      <mat-chip *ngFor="let tag of article.tags.slice(0, 3)" class="tag-chip">
+                        {{ tag }}
+                      </mat-chip>
+                      <span *ngIf="article.tags.length > 3" class="more-tags">+{{ article.tags.length - 3 }}</span>
+                    </div>
+                  </div>
+
+                  <div class="article-footer">
+                    <div class="author-info">
+                      <div class="author-avatar">{{ article.authorAvatar }}</div>
+                      <div class="author-details">
+                        <span class="author-name">{{ article.author }}</span>
+                        <span class="article-date">{{ formatDate(article.updatedAt) }}</span>
+                      </div>
+                    </div>
+
+                    <div class="article-stats">
+                      <div class="stat-item">
+                        <mat-icon>schedule</mat-icon>
+                        <span>{{ formatReadTime(article.estimatedReadTime) }}</span>
+                      </div>
+                      <div class="stat-item">
+                        <mat-icon>visibility</mat-icon>
+                        <span>{{ article.views }}</span>
+                      </div>
+                      <div class="stat-item">
+                        <mat-icon>favorite</mat-icon>
+                        <span>{{ article.likes }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div *ngIf="viewMode === 'list'" class="list-actions">
+                  <button mat-icon-button (click)="likeArticle(article)" [class.liked]="false">
+                    <mat-icon>favorite_border</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="shareArticle(article)">
+                    <mat-icon>share</mat-icon>
+                  </button>
+                  <button mat-icon-button [matMenuTriggerFor]="listArticleMenu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #listArticleMenu="matMenu">
+                    <button mat-menu-item (click)="openArticleDialog(article)">
+                      <mat-icon>edit</mat-icon>
+                      Editar
+                    </button>
+                    <button mat-menu-item (click)="deleteArticle(article)" class="delete-action">
+                      <mat-icon>delete</mat-icon>
+                      Excluir
+                    </button>
+                  </mat-menu>
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions *ngIf="viewMode === 'grid'">
+                <button mat-button (click)="openArticle(article)">
+                  <mat-icon>visibility</mat-icon>
+                  Ler Artigo
+                </button>
+                <button mat-button (click)="likeArticle(article)">
+                  <mat-icon>favorite_border</mat-icon>
+                  Curtir
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Categories Tab -->
+      <mat-tab label="Categorias">
+        <div class="tab-content">
+          <div class="categories-header">
+            <h3>Gerenciar Categorias</h3>
+            <button mat-raised-button color="primary" (click)="openCategoryDialog()">
+              <mat-icon>add</mat-icon>
+              Nova Categoria
+            </button>
+          </div>
+
+          <div class="categories-grid">
+            <mat-card *ngFor="let category of categories" class="category-card">
+              <mat-card-content>
+                <div class="category-content">
+                  <div class="category-icon" [style.background-color]="category.color + '20'">
+                    <mat-icon [style.color]="category.color">{{ category.icon }}</mat-icon>
+                  </div>
+                  <div class="category-info">
+                    <h4 class="category-name">{{ category.name }}</h4>
+                    <p class="category-description">{{ category.description }}</p>
+                    <div class="category-stats">
+                      <span class="article-count">{{ category.articleCount }} artigos</span>
+                      <mat-chip class="status-chip" [class.active]="category.isActive" [class.inactive]="!category.isActive">
+                        {{ category.isActive ? 'Ativa' : 'Inativa' }}
+                      </mat-chip>
+                    </div>
+                  </div>
+                  <div class="category-actions">
+                    <button mat-icon-button (click)="openCategoryDialog(category)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Analytics Tab -->
+      <mat-tab label="Análises">
+        <div class="tab-content">
+          <div class="analytics-grid">
+            <mat-card class="chart-card">
+              <mat-card-header>
+                <mat-card-title>Atividade Recente</mat-card-title>
+                <mat-card-subtitle>Visualizações e artigos dos últimos 7 dias</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas #viewsChart></canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="chart-card">
+              <mat-card-header>
+                <mat-card-title>Distribuição por Categoria</mat-card-title>
+                <mat-card-subtitle>Artigos por categoria</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container">
+                  <canvas #categoriesChart></canvas>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="popular-articles-card">
+              <mat-card-header>
+                <mat-card-title>Artigos Mais Populares</mat-card-title>
+                <mat-card-subtitle>Baseado em visualizações</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="popular-articles-list">
+                  <div *ngFor="let article of articles.slice(0, 5); let i = index" class="popular-article-item">
+                    <div class="rank-badge">{{ i + 1 }}</div>
+                    <div class="article-info">
+                      <span class="article-title">{{ article.title }}</span>
+                      <span class="article-views">{{ article.views }} visualizações</span>
+                    </div>
+                    <button mat-icon-button (click)="openArticle(article)">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="quick-stats-card">
+              <mat-card-header>
+                <mat-card-title>Estatísticas Rápidas</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="quick-stats-grid">
+                  <div class="quick-stat">
+                    <div class="quick-stat-value">{{ (stats.totalViews / stats.totalArticles) | number:'1.0-0' }}</div>
+                    <div class="quick-stat-label">Visualizações por Artigo</div>
+                  </div>
+                  <div class="quick-stat">
+                    <div class="quick-stat-value">{{ getPublishedPercentage() }}%</div>
+                    <div class="quick-stat-label">Taxa de Publicação</div>
+                  </div>
+                  <div class="quick-stat">
+                    <div class="quick-stat-value">{{ getRecentArticlesCount() }}</div>
+                    <div class="quick-stat-label">Artigos Esta Semana</div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+
+  <!-- Article Dialog -->
+  <div *ngIf="showArticleDialog" class="dialog-overlay" (click)="closeArticleDialog()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>{{ isEditMode ? 'Editar Artigo' : 'Novo Artigo' }}</h2>
+        <button mat-icon-button (click)="closeArticleDialog()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="articleForm" class="dialog-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Título</mat-label>
+          <input matInput formControlName="title" placeholder="Digite o título do artigo">
+          <mat-error *ngIf="articleForm.get('title')?.hasError('required')">Título é obrigatório</mat-error>
+          <mat-error *ngIf="articleForm.get('title')?.hasError('minlength')">Título deve ter pelo menos 3 caracteres</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Resumo</mat-label>
+          <textarea matInput formControlName="summary" rows="3" placeholder="Breve descrição do artigo"></textarea>
+          <mat-error *ngIf="articleForm.get('summary')?.hasError('required')">Resumo é obrigatório</mat-error>
+          <mat-error *ngIf="articleForm.get('summary')?.hasError('maxlength')">Resumo deve ter no máximo 200 caracteres</mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Categoria</mat-label>
+            <mat-select formControlName="category">
+              <mat-option *ngFor="let category of categories" [value]="category.name">
+                {{ category.name }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="articleForm.get('category')?.hasError('required')">Categoria é obrigatória</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Dificuldade</mat-label>
+            <mat-select formControlName="difficulty">
+              <mat-option value="beginner">Iniciante</mat-option>
+              <mat-option value="intermediate">Intermediário</mat-option>
+              <mat-option value="advanced">Avançado</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tags</mat-label>
+          <input matInput formControlName="tags" placeholder="Separadas por vírgula">
+          <mat-hint>Ex: angular, typescript, frontend</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Conteúdo</mat-label>
+          <textarea matInput formControlName="content" rows="10" placeholder="Conteúdo completo do artigo"></textarea>
+          <mat-error *ngIf="articleForm.get('content')?.hasError('required')">Conteúdo é obrigatório</mat-error>
+          <mat-error *ngIf="articleForm.get('content')?.hasError('minlength')">Conteúdo deve ter pelo menos 10 caracteres</mat-error>
+        </mat-form-field>
+
+        <mat-checkbox formControlName="isPublished">Publicar artigo</mat-checkbox>
+      </form>
+
+      <div class="dialog-actions">
+        <button mat-button (click)="closeArticleDialog()">Cancelar</button>
+        <button mat-raised-button color="primary" (click)="saveArticle()" [disabled]="!articleForm.valid">
+          {{ isEditMode ? 'Atualizar' : 'Criar' }} Artigo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Dialog -->
+  <div *ngIf="showCategoryDialog" class="dialog-overlay" (click)="closeCategoryDialog()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>{{ isEditMode ? 'Editar Categoria' : 'Nova Categoria' }}</h2>
+        <button mat-icon-button (click)="closeCategoryDialog()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="categoryForm" class="dialog-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="name" placeholder="Nome da categoria">
+          <mat-error *ngIf="categoryForm.get('name')?.hasError('required')">Nome é obrigatório</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Descrição</mat-label>
+          <textarea matInput formControlName="description" rows="3" placeholder="Descrição da categoria"></textarea>
+          <mat-error *ngIf="categoryForm.get('description')?.hasError('required')">Descrição é obrigatória</mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Ícone</mat-label>
+            <input matInput formControlName="icon" placeholder="Nome do ícone Material">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Cor</mat-label>
+            <input matInput type="color" formControlName="color">
+          </mat-form-field>
+        </div>
+
+        <mat-checkbox formControlName="isActive">Categoria ativa</mat-checkbox>
+      </form>
+
+      <div class="dialog-actions">
+        <button mat-button (click)="closeCategoryDialog()">Cancelar</button>
+        <button mat-raised-button color="primary" (click)="saveCategory()" [disabled]="!categoryForm.valid">
+          {{ isEditMode ? 'Atualizar' : 'Criar' }} Categoria
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Article Reader -->
+  <div *ngIf="selectedArticle" class="article-reader-overlay" (click)="closeArticle()">
+    <div class="article-reader" (click)="$event.stopPropagation()">
+      <div class="reader-header">
+        <button mat-icon-button (click)="closeArticle()">
+          <mat-icon>close</mat-icon>
+        </button>
+        <div class="reader-actions">
+          <button mat-icon-button (click)="likeArticle(selectedArticle)">
+            <mat-icon>favorite_border</mat-icon>
+          </button>
+          <button mat-icon-button (click)="shareArticle(selectedArticle)">
+            <mat-icon>share</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="reader-content">
+        <div class="article-header">
+          <h1 class="article-title">{{ selectedArticle.title }}</h1>
+          <div class="article-meta">
+            <div class="author-info">
+              <div class="author-avatar">{{ selectedArticle.authorAvatar }}</div>
+              <div class="author-details">
+                <span class="author-name">{{ selectedArticle.author }}</span>
+                <span class="article-date">{{ formatDate(selectedArticle.updatedAt) }}</span>
+              </div>
+            </div>
+            <div class="article-stats">
+              <span class="read-time">{{ formatReadTime(selectedArticle.estimatedReadTime) }}</span>
+              <span class="views">{{ selectedArticle.views }} visualizações</span>
+            </div>
+          </div>
+          <div class="article-tags">
+            <mat-chip *ngFor="let tag of selectedArticle.tags" class="tag-chip">
+              {{ tag }}
+            </mat-chip>
+          </div>
+        </div>
+
+        <div class="article-body">
+          <p>{{ selectedArticle.content }}</p>
+        </div>
+
+        <div class="related-articles" *ngIf="getRelatedArticles(selectedArticle).length > 0">
+          <h3>Artigos Relacionados</h3>
+          <div class="related-articles-grid">
+            <mat-card *ngFor="let related of getRelatedArticles(selectedArticle)" class="related-article-card" (click)="openArticle(related)">
+              <mat-card-content>
+                <h4>{{ related.title }}</h4>
+                <p>{{ related.summary }}</p>
+                <div class="related-meta">
+                  <span>{{ related.author }}</span>
+                  <span>{{ formatReadTime(related.estimatedReadTime) }}</span>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Carregando base de conhecimento...</p>
+  </div>
+</div>

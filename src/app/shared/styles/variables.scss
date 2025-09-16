@@ -1,0 +1,29 @@
+// Variáveis compartilhadas para componentes
+
+// Importa as variáveis globais
+@import '../../../styles/variables';
+
+// Variáveis específicas para componentes compartilhados
+$component-padding: $spacing-md;
+$component-margin: $spacing-sm;
+$component-border-radius: $border-radius-sm;
+
+// Cores específicas para status
+$status-active: $success-color;
+$status-inactive: $text-muted;
+$status-pending: $info-color;
+$status-error: $warn-color;
+
+// Variáveis para cards
+$card-padding: $spacing-lg;
+$card-margin: $spacing-md;
+$card-shadow: $shadow-md;
+
+// Variáveis para formulários
+$form-field-margin: $spacing-md;
+$form-field-padding: $spacing-sm;
+
+// Variáveis para tabelas
+$table-header-bg: $background-primary;
+$table-row-hover: $background-hover;
+$table-border: $border-color;

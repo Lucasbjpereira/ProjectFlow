@@ -1,0 +1,13 @@
+a.active {
+  background-color: #f3e8ff; /* bg-purple-100 */
+  color: var(--primary-color);
+
+  .font-medium {
+    font-weight: 700; /* font-bold */
+  }
+}
+
+a.active-client {
+  background-color: #f3f4f6; // bg-gray-100
+  color: #111827; // text-gray-900
+}
