@@ -28,13 +28,16 @@
     </div>
 
     <div class="p-4 border-t border-[var(--border-color)]">
-      <div class="flex items-center gap-3">
-        <img alt="User Avatar" class="size-10 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB766poTz5bKwPeYO_Dlu8HNGJDMEYWArbYmF7ihlUvy8zdLOfQhW7pOJDa8f-SMBiW4sOgfWj6YCFHR5RFcFayjDd83rqr-4pRMCG62H8Y0lSoHxMC65QPHm1MiLfhcTI3A81FVqP7KeCUiGET8MxTPn-X46XCL6nUKaDyQFY02ZMumOUgC4zipLvnG2tpiTZs7dvH_49NnimPKfhutSDrFBbQTsWLiarB6SWYmba68E4Iwf5zb52PBGvTHewi1mt-P-0iK4anwA"/>
-        <div>
-          <p class="font-semibold">{{ currentUser?.name || 'Ana Silva' }}</p>
-          <p class="text-sm text-gray-500">{{ currentUser?.email || 'ana.silva@email.com' }}</p>
-        </div>
-      </div>
+      <a (click)="openSettings()"
+         class="flex items-center gap-3 px-4 py-3 text-[var(--text-dark)] hover:bg-purple-50 hover:text-[var(--primary-color)] rounded-lg transition-colors cursor-pointer">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="font-medium">Configurações</span>
+      </a>
+      <a (click)="logout()"
+         class="flex items-center gap-3 px-4 py-3 text-[var(--text-dark)] hover:bg-purple-50 hover:text-[var(--primary-color)] rounded-lg transition-colors cursor-pointer">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-medium">Sair</span>
+      </a>
     </div>
   </aside>
 
