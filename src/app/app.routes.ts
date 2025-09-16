@@ -27,11 +27,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/talent-pool/talent-pool.component').then(m => m.TalentPoolComponent),
         data: { roles: ['admin', 'manager'] }
       },
-      {
-        path: 'projects',
-        loadComponent: () => import('./features/projects/projects.component').then(m => m.ProjectsComponent),
-        data: { roles: ['admin', 'manager'] }
-      },
+      
       {
         path: 'workboard',
         loadComponent: () => import('./features/workboard/workboard.component').then(m => m.WorkboardComponent),

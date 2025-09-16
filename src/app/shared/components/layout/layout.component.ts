@@ -64,12 +64,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
       roles: ['admin', 'user', 'client']
     },
     {
-      label: 'Projetos',
-      icon: 'folder_open',
-      route: '/projects',
-      roles: ['admin', 'user', 'client']
-    },
-    {
       label: 'Clientes',
       icon: 'group',
       route: '/client-dashboard',
