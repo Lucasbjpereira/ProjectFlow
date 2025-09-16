@@ -20,7 +20,7 @@ export class ProjectFormComponent implements OnInit, OnChanges {
 
   projectForm: FormGroup;
   clients$: Observable<Client[]>;
-  contracts$: Observable<Contract[]>;
+  contracts: Contract[] = [];
   isEditMode = false;
 
   constructor(
@@ -31,7 +31,7 @@ export class ProjectFormComponent implements OnInit, OnChanges {
       id: [null],
       name: ['', Validators.required],
       clientId: ['', Validators.required],
-      contractId: ['', Validators.required],
+      contractNumber: ['', Validators.required],
       description: ['', Validators.required],
       budgetHours: [0, [Validators.required, Validators.min(0)]],
       budgetAmount: [0, [Validators.required, Validators.min(0)]],
@@ -45,7 +45,7 @@ export class ProjectFormComponent implements OnInit, OnChanges {
     });
 
     this.clients$ = this.projectService.getClients();
-    this.contracts$ = this.projectService.getContracts();
+    this.projectService.getContracts().subscribe(contracts => this.contracts = contracts);
   }
 
   ngOnInit(): void {
@@ -60,8 +60,10 @@ export class ProjectFormComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['project'] && this.project) {
       this.isEditMode = true;
+      const contract = this.contracts.find(c => c.id === this.project?.contractId);
       this.projectForm.patchValue({
         ...this.project,
+        contractNumber: contract ? contract.contractNumber : '',
         technologies: this.project.technologies?.join(', '),
         startDate: this.project.startDate ? new Date(this.project.startDate).toISOString().split('T')[0] : '',
         endDate: this.project.endDate ? new Date(this.project.endDate).toISOString().split('T')[0] : ''
@@ -83,12 +85,20 @@ export class ProjectFormComponent implements OnInit, OnChanges {
 
   onSubmit(): void {
     if (this.projectForm.valid) {
-      const formValue = this.projectForm.value;
+      const formValue = this.projectForm.getRawValue();
+      const contract = this.contracts.find(c => c.contractNumber === formValue.contractNumber);
+      
+      if (!contract) {
+        // Idealmente, aqui você mostraria um erro para o usuário
+        console.error('Número do contrato inválido ou não encontrado.');
+        return;
+      }
+
       const projectData: Project = {
         ...this.project,
         ...formValue,
+        contractId: contract.id, // Salva o ID do contrato encontrado
         technologies: formValue.technologies ? formValue.technologies.split(',').map((t: string) => t.trim()) : [],
-        // Ensure fields that are not in the form but are required by the interface are handled
         id: this.project?.id || null,
         progress: this.project?.progress || 0,
         allocations: this.project?.allocations || [],
