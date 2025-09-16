@@ -14,6 +14,7 @@ import { map, shareReplay, takeUntil } from 'rxjs/operators';
 import { AuthService, ProjectService } from '../../../core/services';
 import { User, Client } from '../../../core/models';
 import { HeaderComponent } from '../header/header.component';
+import { LogoComponent } from '../logo/logo.component';
 
 interface MenuItem {
   label: string;
@@ -38,7 +39,8 @@ interface MenuItem {
     MatButtonModule,
     MatMenuModule,
     MatBadgeModule,
-    HeaderComponent
+    HeaderComponent,
+    LogoComponent
   ],
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss']
