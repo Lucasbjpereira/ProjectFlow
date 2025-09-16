@@ -3,12 +3,9 @@
   <header class="flex items-center justify-between mb-8">
     <h2 class="text-4xl font-bold text-[var(--text-dark)]">Clientes</h2>
     <div class="flex items-center gap-4">
-      <button class="flex items-center justify-center gap-2 h-12 px-6 bg-[var(--primary-color)] text-white rounded-lg shadow-md hover:bg-purple-700 transition-colors">
+      <button (click)="openModal()" class="flex items-center justify-center gap-2 h-12 px-6 bg-[var(--primary-color)] text-white rounded-lg shadow-md hover:bg-purple-700 transition-colors">
         <span class="material-symbols-outlined">add</span>
         <span class="font-medium">Novo Cliente</span>
-      </button>
-      <button class="p-3 rounded-full hover:bg-gray-200 transition-colors">
-        <span class="material-symbols-outlined text-[var(--text-dark)]">notifications</span>
       </button>
     </div>
   </header>
@@ -37,33 +34,38 @@
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" *ngIf="clients$ | async as clients">
-    <div *ngFor="let client of clients" (click)="selectClient(client)" class="bg-white rounded-xl shadow-sm p-6 cursor-pointer hover-effect">
-      <div class="flex items-start justify-between mb-4">
-        <div class="flex items-center gap-4">
-          <img alt="Client Logo" class="size-12 rounded-lg" [src]="client.imageUrl"/>
-          <div>
-            <h3 class="font-bold text-lg text-[var(--text-dark)]">{{ client.name }}</h3>
-            <div class="flex items-center text-sm text-gray-500">
-              <span class="status-dot" [class.status-active]="client.status === 'active'" [class.status-suspended]="client.status === 'suspended'" [class.status-prospect]="client.status === 'prospect'"></span>
-              <span>{{ client.status | titlecase }}</span>
+    <div *ngFor="let client of clients" class="bg-white rounded-xl shadow-sm p-6 hover-effect relative">
+      <div (click)="selectClient(client)" class="cursor-pointer">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-4">
+            <img alt="Client Logo" class="size-12 rounded-lg" [src]="client.imageUrl"/>
+            <div>
+              <h3 class="font-bold text-lg text-[var(--text-dark)]">{{ client.name }}</h3>
+              <div class="flex items-center text-sm text-gray-500">
+                <span class="status-dot" [class.status-active]="client.status === 'active'" [class.status-suspended]="client.status === 'suspended'" [class.status-prospect]="client.status === 'prospect'"></span>
+                <span>{{ client.status | titlecase }}</span>
+              </div>
             </div>
           </div>
         </div>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Total Projetos</span>
+            <span class="font-medium">{{ client.totalProjects }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Faturamento Total</span>
+            <span class="font-medium text-green-600">{{ client.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Horas Totais</span>
+            <span class="font-medium">{{ client.totalHours }}h</span>
+          </div>
+        </div>
       </div>
-      <div class="space-y-3 text-sm">
-        <div class="flex justify-between">
-          <span class="text-gray-500">Total Projetos</span>
-          <span class="font-medium">{{ client.totalProjects }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Faturamento Total</span>
-          <span class="font-medium text-green-600">{{ client.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Horas Totais</span>
-          <span class="font-medium">{{ client.totalHours }}h</span>
-        </div>
-      </div>
+      <button (click)="openModal(client); $event.stopPropagation()" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 transition-colors">
+        <span class="material-symbols-outlined text-gray-600">more_vert</span>
+      </button>
     </div>
   </div>
 </ng-container>
@@ -109,3 +111,11 @@
     <app-projects [clientId]="selectedClient.id"></app-projects>
   </div>
 </ng-template>
+
+<!-- Client Form Modal -->
+<app-client-form
+  *ngIf="isModalOpen"
+  [client]="clientToEdit"
+  (save)="saveClient($event)"
+  (close)="closeModal()">
+</app-client-form>

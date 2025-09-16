@@ -17,4 +17,12 @@ export class ClientService {
   getClientById(id: string): Observable<Client | undefined> {
     return this.projectService.getClientById(id);
   }
+
+  createClient(client: Omit<Client, 'id' | 'createdAt'>): Observable<Client> {
+    return this.projectService.createClient(client);
+  }
+
+  updateClient(id: string, updates: Partial<Client>): Observable<Client | null> {
+    return this.projectService.updateClient(id, updates);
+  }
 }
